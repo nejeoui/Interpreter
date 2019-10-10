@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.nejeoui.interpreter.dto.InterpreterQuery;
 import com.nejeoui.interpreter.dto.InterpreterResult;
+import com.nejeoui.interpreter.dto.InterpreterType;
 import com.nejeoui.interpreter.pooling.InterpretersHashMap;
 
 @RestController
@@ -41,7 +42,7 @@ public class InterpreterController {
 		try {
 			interpreter.setOut(out);
 			interpreter.setErr(out);
-			interpreter.exec(query.getCode());
+			interpreter.exec(query.getInterpreterCode(InterpreterType.PYTHON));
 			out.flush();
 
 			logger.info(out.toString());
