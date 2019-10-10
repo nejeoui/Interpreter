@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+h2 {
+	border-bottom: 1px dashed green;
+}
+</style>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="js/jquery-3.4.1.min.js"></script>
+
+</head>
+<body>
+	<h2>Welcome to Python Interpreter</h2>
+
+	<textarea id="terminal"></textarea>
+	<br>
+	<button id="exec">execute</button>
+	<h2>Result</h2>
+	<p id="resultDiv"></p>
+	<script type="text/javascript">
+		$("#exec").click(function() {
+			let code = $("#terminal").val();
+			let codeJson = {
+				"code" : code
+			};
+			$.ajax({
+				type : "POST",
+				url : "/exec",
+				data : JSON.stringify(codeJson),
+				contentType : "application/json",
+				dataType : "json",
+				success : function(result) {
+					$("#resultDiv").html(result.result);
+				},
+				failure : function(errMsg) {
+					alert(errMsg);
+				}
+			});
+
+		});
+	</script>
+</body>
+</html>
