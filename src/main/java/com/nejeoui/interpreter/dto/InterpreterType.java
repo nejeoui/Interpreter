@@ -8,5 +8,5 @@ package com.nejeoui.interpreter.dto;
  * @since 1.0
  */
 public enum InterpreterType {
-	PYTHON, SQL
+	PYTHON, SQL,UNKNOWN
 }

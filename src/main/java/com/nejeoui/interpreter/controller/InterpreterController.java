@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.nejeoui.interpreter.dto.InterpreterQuery;
 import com.nejeoui.interpreter.dto.InterpreterResult;
 import com.nejeoui.interpreter.dto.InterpreterType;
+import com.nejeoui.interpreter.exception.NotImplementedException;
+import com.nejeoui.interpreter.exception.UnknownInterpreterException;
 import com.nejeoui.interpreter.pooling.InterpretersHashMap;
 
 @RestController
@@ -30,27 +32,51 @@ public class InterpreterController {
 	 * @param InterpreterQuery in Json format
 	 * @return InterpreterResult in Json format
 	 * @author a.nejeoui<a.nejeoui@gmail.com>
+	 * @throws NotImplementedException
 	 */
 	@RequestMapping("/exec")
 	@ResponseBody
-	public InterpreterResult exec(@RequestBody InterpreterQuery query, HttpServletRequest request) {
+	public InterpreterResult exec(@RequestBody InterpreterQuery query, HttpServletRequest request)
+			throws NotImplementedException {
 		InterpreterResult result = new InterpreterResult();
 		HttpSession session = request.getSession(true);
-		PythonInterpreter interpreter = InterpretersHashMap.get(session.getId());
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-		try {
-			interpreter.setOut(out);
-			interpreter.setErr(out);
-			interpreter.exec(query.getInterpreterCode(InterpreterType.PYTHON));
-			out.flush();
+		InterpreterType interpreterType = query.getInterpreterType();
 
-			logger.info(out.toString());
-			result.setResult(out.toString());
-		} catch (PyException | IOException e) {
-			e.printStackTrace();
-			result.setResult("--Error-- :" + out.toString());
-			logger.error(e.getMessage());
+		switch (interpreterType) {
+
+		case PYTHON: {/*
+						 * User can access Python Interpreter context using a hard coded sessionId Can
+						 * be useful to access the same Interpreter context from multiple devices for
+						 * authorized users
+						 */
+
+			PythonInterpreter interpreter = (query.getSessionId() != null)
+					? InterpretersHashMap.get(query.getSessionId())
+					: InterpretersHashMap.get(session.getId());
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+			try {
+				interpreter.setOut(out);
+				interpreter.setErr(out);
+				interpreter.exec(query.getInterpreterCode());
+				out.flush();
+
+				logger.info(out.toString());
+				result.setResult(out.toString());
+			} catch (PyException | IOException e) {
+				e.printStackTrace();
+				result.setResult("--Error-- :" + out.toString());
+				logger.error(e.getMessage());
+
+			}
+		}
+			break;
+		case SQL:
+			throw new NotImplementedException();
+		case UNKNOWN:
+			result.setResult("--UNKOWN INTERPRETER--");
+			break;
 
 		}
 		return result;
@@ -59,6 +85,7 @@ public class InterpreterController {
 	/**
 	 * 
 	 * clean the PythonInterpreter associated to the current HttpSession
+	 * 
 	 * @return InterpreterResult
 	 * @author a.nejeoui<a.nejeoui@gmail.com>
 	 */
