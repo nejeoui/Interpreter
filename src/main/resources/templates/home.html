@@ -21,7 +21,7 @@ h2 {
 	<p id="resultDiv"></p>
 	<script type="text/javascript">
 		$("#exec").click(function() {
-			let code = $("#terminal").val();
+			let code = "%python "+$("#terminal").val();
 			let codeJson = {
 				"code" : code
 			};
