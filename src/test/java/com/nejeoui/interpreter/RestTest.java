@@ -57,9 +57,6 @@ public class RestTest extends InterpreterApplicationTests {
 		InterpreterResult result = super.mapFromJson(content, InterpreterResult.class);
 		assertTrue(result.getResult().contains("45"));
 
-		mvc.perform(MockMvcRequestBuilders.post(uri).session(session).contentType(MediaType.APPLICATION_JSON_VALUE))
-				.andReturn();
-
 		// clean the interpreter locals and execute %python print x
 		query = new InterpreterQuery("%python print x");
 		inputJson = super.mapToJson(query);
@@ -75,5 +72,23 @@ public class RestTest extends InterpreterApplicationTests {
 		content = mvcResult.getResponse().getContentAsString();
 		result = super.mapFromJson(content, InterpreterResult.class);
 		assertTrue(result.getResult().contains("--Error-- :Traceback (most recent call last)"));
+	}
+
+	@Test
+	public void unknownInterpreterTest() throws Exception {
+		String uri = "/exec";
+		String uriClean = "/clean";
+		// First Query %Java int x=45;
+		InterpreterQuery query = new InterpreterQuery("%Java int x=45;");
+		String inputJson = super.mapToJson(query);
+
+		MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.post(uri).session(session)
+				.contentType(MediaType.APPLICATION_JSON_VALUE).content(inputJson)).andReturn();
+
+		int status = mvcResult.getResponse().getStatus();
+		assertEquals(200, status);
+		String content = mvcResult.getResponse().getContentAsString();
+		InterpreterResult result = super.mapFromJson(content, InterpreterResult.class);
+		assertTrue(result.getResult().contains("--UNKOWN INTERPRETER--"));
 	}
 }

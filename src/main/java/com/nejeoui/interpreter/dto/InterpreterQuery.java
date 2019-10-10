@@ -16,6 +16,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class InterpreterQuery {
 	private String code;
+	/*
+	 * Hard coded sessionId to give the user access to her/his session' Interpreter
+	 */
+	private String sessionId;
 
 	public InterpreterQuery() {
 		super();
@@ -36,17 +40,42 @@ public class InterpreterQuery {
 		this.code = code;
 	}
 
-	public String getInterpreterCode(InterpreterType interpreterType) {
+	public String getInterpreterCode() {
 
-		switch (interpreterType) {
+		switch (getInterpreterType()) {
 		case PYTHON:
-			if (code != null && code.startsWith("%python ")) {
-				return code.substring(8);
-			}
+				return code.substring(Constants.PYTHONSTART);
+		case SQL:
+			return code.substring(Constants.SQLSTART);
+			
 		default:
 			return "";
 		}
 
+	}
+
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
+	}
+
+	public InterpreterType getInterpreterType() {
+		if (code == null || code.length() < 3 || code.indexOf(" ") == -1)
+			return InterpreterType.UNKNOWN;
+		String start = code.substring(1, code.indexOf(" "));
+		if (start == null || start.length() == 0)
+			return InterpreterType.UNKNOWN;
+		switch (start.toLowerCase()) {
+		case "python":
+			return InterpreterType.PYTHON;
+		case "sql":
+			return InterpreterType.SQL;
+		default:
+			return InterpreterType.UNKNOWN;
+		}
 	}
 
 }
