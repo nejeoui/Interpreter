@@ -3,13 +3,26 @@ package com.nejeoui.interpreter;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import com.nejeoui.interpreter.concurrency.MyExecutor;
+import com.nejeoui.interpreter.concurrency.SimulateSessionTask;
+import com.nejeoui.interpreter.dto.Constants;
 import com.nejeoui.interpreter.dto.InterpreterQuery;
 import com.nejeoui.interpreter.dto.InterpreterResult;
+import com.nejeoui.interpreter.dto.InterpreterType;
 
 public class RestTest extends InterpreterApplicationTests {
 
@@ -90,5 +103,52 @@ public class RestTest extends InterpreterApplicationTests {
 		String content = mvcResult.getResponse().getContentAsString();
 		InterpreterResult result = super.mapFromJson(content, InterpreterResult.class);
 		assertTrue(result.getResult().contains("--UNKOWN INTERPRETER--"));
+	}
+
+	@Test
+	public void multiSessionsTest() throws Exception {
+		int cores = Runtime.getRuntime().availableProcessors();
+		MyExecutor poolExecutor = new MyExecutor(cores, 2 * cores, 1000, TimeUnit.MILLISECONDS,
+				new LinkedBlockingDeque<Runnable>());
+		List<List<InterpreterQuery>> queriesList = new ArrayList<List<InterpreterQuery>>();
+		List<Future<String>> futures = new ArrayList<Future<String>>();
+		List<String> desiredResults = new ArrayList<String>();
+
+		for (int i = 0; i < cores; i++) {
+			StringBuilder strBuilder = new StringBuilder();
+			List<InterpreterQuery> queries = new ArrayList<InterpreterQuery>();
+			for (int j = 0; j < Constants.PARALLEL_SESSIONS; j++) {
+				InterpreterQuery query = getRandomQuery(InterpreterType.PYTHON);
+				queries.add(j, query);
+				strBuilder.append(
+						query.getInterpreterCode().replace("x=", "").replace("print x", "").replaceAll("\n", ""));
+			}
+			queriesList.add(queries);
+			desiredResults.add(strBuilder.toString());
+		}
+
+		for (int i = 0; i < cores; i++) {
+			String sid = UUID.randomUUID().toString();
+			MockHttpSession newSession = new MockHttpSession(webApplicationContext.getServletContext(), sid);
+			SimulateSessionTask task = new SimulateSessionTask(queriesList.get(i), mvc, this, newSession);
+			futures.add(i, poolExecutor.submit(task));
+		}
+		for (int i = 0; i < cores; i++) {
+			futures.get(i).get();
+		}
+		for (int i = 0; i < cores; i++) {
+			String fStr = futures.get(i).get().replaceAll("\n", "");
+			String desiStr = desiredResults.get(i);
+			assertEquals(fStr, desiStr);
+		}
+
+	}
+
+	private InterpreterQuery getRandomQuery(InterpreterType type) {
+		InterpreterQuery query = new InterpreterQuery();
+		if (type.equals(InterpreterType.PYTHON)) {
+			query.setCode(Constants.PYTHONSTARTSTR + "x=" + new Random().nextInt(Integer.MAX_VALUE) + "\nprint x");
+		}
+		return query;
 	}
 }
