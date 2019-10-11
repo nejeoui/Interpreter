@@ -27,9 +27,9 @@ mvn test
 ## Run the RESTful API
 ```
 mvn -X exec:java -Dstart-class=com.nejeoui.interpreter.InterpreterApplication
-
-open the [Interpreter console ](http://localhost:8088/)
 ```
+open the [Interpreter console ](http://localhost:8088/) http://localhost:8088/
+
 # Future enhancement 
 - add spring-session jdbc to persist interpreter commands 
 - stress tests with Jmeter
