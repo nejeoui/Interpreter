@@ -14,8 +14,9 @@ h2 {
 <body>
 	<h2>Welcome to Python Interpreter</h2>
 
-	<textarea id="terminal"></textarea>
+	<textarea id="terminal" cols="50" rows="10" placeholder="Insert code here" ></textarea>
 	<br>
+	<input type="text" id="sessionId" size="50" placeholder="SessionId" /><br>
 	<button id="exec">execute</button>
 	<h2>Result</h2>
 	<p id="resultDiv"></p>
@@ -23,7 +24,8 @@ h2 {
 		$("#exec").click(function() {
 			let code = "%python "+$("#terminal").val();
 			let codeJson = {
-				"code" : code
+				"code" : code,
+				"sessionId":$("#sessionId").val()
 			};
 			$.ajax({
 				type : "POST",
