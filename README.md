@@ -22,13 +22,13 @@ cd interpreter
 ensure maven is installed and run : 
 ```
 mvn test
-
+```
 
 ## Run the RESTful API
 ```
 mvn -X exec:java -Dstart-class=com.nejeoui.interpreter.InterpreterApplication
 
-open the [Interpreter console ](http://localhost:8088/home)
+open the [Interpreter console ](http://localhost:8088/)
 ```
 # Future enhancement 
 - add spring-session jdbc to persist interpreter commands 
