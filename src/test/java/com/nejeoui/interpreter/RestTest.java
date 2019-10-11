@@ -12,8 +12,10 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -23,7 +25,7 @@ import com.nejeoui.interpreter.dto.Constants;
 import com.nejeoui.interpreter.dto.InterpreterQuery;
 import com.nejeoui.interpreter.dto.InterpreterResult;
 import com.nejeoui.interpreter.dto.InterpreterType;
-
+@RunWith(SpringJUnit4ClassRunner.class)
 public class RestTest extends InterpreterApplicationTests {
 
 	@Test
